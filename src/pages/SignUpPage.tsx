@@ -9,7 +9,6 @@ import { useForm } from "react-hook-form";
 import { useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
-import { GoogleLogin } from "react-google-login"; // Import GoogleLogin component
 import { getToken } from "@/utils/HelperFunctions";
 import { toast, useToast } from "@/components/ui/use-toast";
 

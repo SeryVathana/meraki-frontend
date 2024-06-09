@@ -7,7 +7,6 @@ import { useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { RootState } from "@/redux/store";
 import { Label } from "@/components/ui/label";
-import { GoogleLogin } from "react-google-login"; // Import GoogleLogin component
 import { useEffect, useState } from "react";
 import { useAppDispatch } from "@/redux/hook";
 import { login } from "@/redux/slices/authThunk";
