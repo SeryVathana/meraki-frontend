@@ -68,6 +68,8 @@ const EditPostPage = () => {
       img_url: imgURL,
     };
 
+    console.log(reqBody);
+
     await fetch(`${import.meta.env.VITE_SERVER_URL}/post/${postId}`, {
       method: "PUT",
       headers: {
@@ -78,7 +80,6 @@ const EditPostPage = () => {
     })
       .then((res) => res.json())
       .then((data) => {
-        setIsLoading(false);
         toast({
           title: "Successfully update post.",
           variant: "success",
@@ -87,17 +88,17 @@ const EditPostPage = () => {
       })
       .catch((err) => {
         console.log(err);
-        setIsLoading(false);
         toast({
           title: "Failed to update post.",
           variant: "destructive",
           description: "Please try again later.",
         });
-      });
+      })
+      .finally(() => setIsLoading(false));
 
-    setUploadFile(null);
-    setTempImgURL("");
-    setSelectedTag([]);
+    // setUploadFile(null);
+    // setTempImgURL("");
+    // setSelectedTag([]);
 
     handleFetchPostDetail();
   }

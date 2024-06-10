@@ -314,9 +314,9 @@ const PostDetailPage = () => {
         <div className={cn("w-full h-[80vh] bg-slate-100 border-r-[1px] border-b-[1px] rounded-l-2xl overflow-hidden")}>
           <img src={post?.img_url} alt="Image" className={cn("object-contain h-full mx-auto")} />
         </div>
-        <div className={cn("relative flex flex-col pt-5 max-h-[80vh]")}>
+        <div className={cn("flex flex-col pt-5 max-h-[80vh]")}>
           <div className={cn("flex flex-col pr-5  overflow-auto")}>
-            <div className="flex gap-4 items-center">
+            <div className="flex gap-4 items-center relative">
               <Avatar className="cursor-pointer border rounded-full overflow-hidden" onClick={() => navigate(`/user/${1}`)}>
                 <AvatarImage src={post.user_pf_img_url} alt="@shadcn" className="w-12 h-12 object-cover" />
                 <AvatarFallback>CN</AvatarFallback>
@@ -341,17 +341,15 @@ const PostDetailPage = () => {
                   <Users className="h-4 text-slate-500" />
                 </div>
               </div>
-            </div>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="absolute top-3 right-3">
-                  <Ellipsis className="w-5 h-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {auth.userData.id == post.user_id ||
-                  (auth.userData.role == "admin" && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="absolute top-0 right-0">
+                    <Ellipsis className="w-5 h-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {(auth.userData.id == post.user_id || auth.userData.role == "admin") && (
                     <>
                       <Link to={`/post/edit/${post.id}`} className="w-full py-0 text-left cursor-pointer">
                         <div className="flex gap-2 justify-start items-center py-2 px-2 text-sm cursor-pointer hover:bg-gray-100 rounded-sm">
@@ -385,37 +383,38 @@ const PostDetailPage = () => {
                         </>
                       </DropdownMenuItem>
                     </>
-                  ))}
+                  )}
 
-                <DropdownMenuItem asChild>
-                  <>
-                    <Dialog open={isReportOpen} onOpenChange={() => setIsReportOpen(!isReportOpen)}>
-                      <DialogTrigger asChild>
-                        <div className="flex gap-2 justify-start items-center py-2 px-2 text-sm cursor-pointer hover:bg-gray-100 rounded-sm">
-                          <AlertTriangle className="w-4 h-4" />
-                          <span>Report</span>
-                        </div>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogTitle>Report Post</DialogTitle>
-                        <DialogDescription>If you believe this post violates our community guidelines, please report it.</DialogDescription>
-                        <div className="flex flex-col gap-5">
-                          <Textarea
-                            placeholder="Add reason here."
-                            className="border-2 min-h-[150px]"
-                            value={report}
-                            onChange={(e) => setReport(e.target.value)}
-                          />
-                          <Button variant="default" className="w-full font-semibold" onClick={() => handleSubmitReport()}>
-                            Report
-                          </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <DropdownMenuItem asChild>
+                    <>
+                      <Dialog open={isReportOpen} onOpenChange={() => setIsReportOpen(!isReportOpen)}>
+                        <DialogTrigger asChild>
+                          <div className="flex gap-2 justify-start items-center py-2 px-2 text-sm cursor-pointer hover:bg-gray-100 rounded-sm">
+                            <AlertTriangle className="w-4 h-4" />
+                            <span>Report</span>
+                          </div>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogTitle>Report Post</DialogTitle>
+                          <DialogDescription>If you believe this post violates our community guidelines, please report it.</DialogDescription>
+                          <div className="flex flex-col gap-5">
+                            <Textarea
+                              placeholder="Add reason here."
+                              className="border-2 min-h-[150px]"
+                              value={report}
+                              onChange={(e) => setReport(e.target.value)}
+                            />
+                            <Button variant="default" className="w-full font-semibold" onClick={() => handleSubmitReport()}>
+                              Report
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
 
             <div className="mt-5">
               <p className="text-2xl font-semibold">{post?.title}</p>
