@@ -67,7 +67,6 @@ const UserPage = () => {
   useEffect(() => {
     //validate user id must be number
     if (isNaN(Number(userId))) {
-      console.log("User ID must be a number");
       setIsLoading(false);
       return;
     }

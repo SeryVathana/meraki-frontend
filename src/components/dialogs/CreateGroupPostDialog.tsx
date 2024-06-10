@@ -57,7 +57,7 @@ const CreateGroupPostDialog = ({ group, handleFetchGroupPosts }: { group: any; h
           variant: "success",
           description: "Your post is now live.",
         });
-        handleFetchGroupPosts();
+        // handleFetchGroupPosts();
       })
       .catch((err) => {
         setIsLoading(false);

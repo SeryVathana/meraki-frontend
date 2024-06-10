@@ -4,27 +4,23 @@ import EditGroupDialog from "@/components/dialogs/EditGroupDialog";
 import GroupAddMembersDialog from "@/components/dialogs/GroupAddMembersDialog";
 import GroupJoinRequestsDailog from "@/components/dialogs/GroupJoinRequestsDailog";
 import GroupMembersDialog from "@/components/dialogs/GroupMembersDialog";
-import GroupPostRequests from "@/components/dialogs/GroupPostRequests";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { RootState } from "@/redux/store";
 import { capitalizeFirstLetter, getToken } from "@/utils/HelperFunctions";
 import { Dialog } from "@radix-ui/react-dialog";
-import { set } from "date-fns";
-import { Dot, Ellipsis, LoaderCircle, Pen, SearchX } from "lucide-react";
+import { Dot, Ellipsis, LoaderCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import NotFoundPage from "./NotFoundPage";
+import { supabase } from "../lib/supabase"; // adjust the import path as needed
 
 const GroupPage = () => {
-  const [isPublicGroup, setIsPublicGroup] = useState<boolean>(true);
   const [group, setGroup] = useState<any | null>(null);
   const [posts, setPosts] = useState<any[]>([]);
-  const [isOwner, setIsOwner] = useState<boolean>(false);
-  const [isMember, setIsMember] = useState<boolean>(false);
   const auth = useSelector((state: RootState) => state.auth);
   const [openAlert, setOpenAlert] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,50 +32,59 @@ const GroupPage = () => {
     fetch(`${import.meta.env.VITE_SERVER_URL}/group/${groupId}`, { method: "GET", headers: { Authorization: `Bearer ${getToken()}` } })
       .then((res) => res.json())
       .then((data) => {
-        console.log(data.group);
         setGroup(data.group);
       })
       .finally(() => setIsLoading(false));
   };
 
+  supabase
+    .channel("change_members")
+    .on("postgres_changes", { event: "*", schema: "public", table: "group_members" }, handleFetchGroupInfo)
+    .subscribe();
+
+  supabase
+    .channel("change_requests")
+    .on("postgres_changes", { event: "*", schema: "public", table: "group_requests" }, handleFetchGroupInfo)
+    .subscribe();
+
+  // supabase.channel("change_groups").on("postgres_changes", { event: "*", schema: "public", table: "groups" }, handleFetchGroupInfo).subscribe();
+
   const handleFetchGroupPosts = () => {
     setIsLoading(true);
     fetch(`${import.meta.env.VITE_SERVER_URL}/post/group/${groupId}`, { method: "GET", headers: { Authorization: `Bearer ${getToken()}` } })
       .then((res) => res.json())
-      .then((data) => setPosts(data.posts))
+      .then((data) => {
+        setPosts(data.posts);
+      })
       .finally(() => setIsLoading(false));
   };
+
+  supabase.channel("change_posts").on("postgres_changes", { event: "*", schema: "public", table: "posts" }, handleFetchGroupPosts).subscribe();
 
   const handleJoinPublicGroup = () => {
     fetch(`${import.meta.env.VITE_SERVER_URL}/group/public/join/${groupId}`, { method: "PUT", headers: { Authorization: `Bearer ${getToken()}` } })
       .then((res) => res.json())
       .then((data) => {
-        setIsMember(true);
         handleFetchGroupInfo();
       });
   };
 
   const handleRequestJoinPrivateGroup = () => {
-    setIsRequesting((prev) => !prev);
+    setIsRequesting(true);
     fetch(`${import.meta.env.VITE_SERVER_URL}/group/request/${groupId}`, { method: "POST", headers: { Authorization: `Bearer ${getToken()}` } })
       .then((res) => res.json())
       .then((data) => {
-        if (data.status == 200) {
+        if (data.status == 200 || data.status == 201) {
           handleFetchGroupInfo();
-        } else {
-          setIsRequesting((prev) => !prev);
         }
       })
-      .catch((err) => {
-        setIsRequesting((prev) => !prev);
-      });
+      .finally(() => setIsRequesting(false));
   };
 
   const handleLeaveGroup = () => {
     fetch(`${import.meta.env.VITE_SERVER_URL}/group/leave/${groupId}`, { method: "PUT", headers: { Authorization: `Bearer ${getToken()}` } })
       .then((res) => res.json())
       .then((data) => {
-        setIsMember(false);
         handleFetchGroupInfo();
       })
       .finally(() => {
@@ -102,18 +107,24 @@ const GroupPage = () => {
   };
 
   useEffect(() => {
-    // fetch group data
-    setIsLoading(true);
+    // Fetch group data initially
     handleFetchGroupInfo();
-  }, [groupId]);
 
-  useEffect(() => {
-    if (group) {
-      if (group?.status === "private") {
-        setIsPublicGroup(false);
-      }
-    }
-  }, [group]);
+    // Create a real-time channel to listen for changes in the group_members table
+    const channel = supabase
+      .channel("change_members")
+      .on("postgres_changes", { event: "*", schema: "public", table: "group_members" }, (payload) => {
+        console.log("Change detected in group_members table:", payload);
+        // Fetch group info again when a change is detected
+        handleFetchGroupInfo();
+      })
+      .subscribe();
+
+    // Cleanup subscription on unmount
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [groupId]);
 
   useEffect(() => {
     if (!group || (group.status == "private" && group.is_member === false)) {
@@ -122,28 +133,6 @@ const GroupPage = () => {
     //fetch group posts
     handleFetchGroupPosts();
   }, [group]);
-
-  useEffect(() => {
-    if (group) {
-      if (group.owner_id === auth.userData.id) {
-        setIsOwner(true);
-      }
-
-      if (group.is_member) {
-        setIsMember(true);
-      }
-
-      if (group.is_requesting) {
-        setIsRequesting(true);
-      }
-
-      if (group.status === "public") {
-        setIsPublicGroup(true);
-      } else {
-        setIsPublicGroup(false);
-      }
-    }
-  }, [group, auth]);
 
   if (!group && isLoading) {
     return (
@@ -190,7 +179,7 @@ const GroupPage = () => {
             <Button variant="default" className="rounded-full" onClick={() => handleAcceptInvite()}>
               Accept Invite
             </Button>
-          ) : isMember ? (
+          ) : group.is_member ? (
             <CreateGroupPostDialog group={group} handleFetchGroupPosts={handleFetchGroupPosts} />
           ) : group?.status === "public" ? (
             <Button className="rounded-full" onClick={() => handleJoinPublicGroup()}>
@@ -200,13 +189,17 @@ const GroupPage = () => {
             <Button className="rounded-full" variant="secondary" onClick={() => handleRequestJoinPrivateGroup()}>
               Cancel Request
             </Button>
+          ) : isRequesting ? (
+            <Button className="rounded-full" disabled>
+              Requesting...
+            </Button>
           ) : (
             <Button className="rounded-full" onClick={() => handleRequestJoinPrivateGroup()}>
               Request Join
             </Button>
           )}
 
-          {isMember && (
+          {group.is_member && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <div className="relative">
@@ -235,15 +228,10 @@ const GroupPage = () => {
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <>
-                        <GroupJoinRequestsDailog group={group} type="dropdown" />
-                      </>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <>
                         <GroupAddMembersDialog group={group} type="dropdown" />
                       </>
                     </DropdownMenuItem>
-                    {isOwner && (
+                    {group.owner_id == auth.userData.id && (
                       <DropdownMenuItem asChild>
                         <>
                           <EditGroupDialog group={group} handleFetchGroupInfo={handleFetchGroupInfo} type="dropdown" />
@@ -253,7 +241,7 @@ const GroupPage = () => {
                   </>
                 )}
 
-                {!isOwner && (
+                {group.owner_id != auth.userData.id && (
                   <DropdownMenuItem asChild>
                     <>
                       <Dialog open={openAlert} onOpenChange={() => setOpenAlert(!openAlert)}>
@@ -284,7 +272,7 @@ const GroupPage = () => {
         </div>
       </div>
       <div className="my-10">
-        {isPublicGroup || isMember ? (
+        {group.status == "public" || group.is_member ? (
           posts?.length > 0 ? (
             <div className="mt-10">
               <PostsContainer posts={posts} />

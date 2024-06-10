@@ -2,12 +2,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { getToken } from "@/utils/HelperFunctions";
-import { Check, Pin, Search } from "lucide-react";
+import { Check, Pin, Search, SearchX } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
+import CreateFolderDialog from "./CreateFolderDialog";
 
 const SavePostDialog = ({ postId, isSaved, type }: { postId: number; isSaved: boolean; type: string }) => {
   const [isSavedPost, setIsSavedPost] = useState<boolean>(isSaved);
+
+  const [fetchNewFolders, setFetchNewFolders] = useState<boolean>(false);
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -46,15 +50,16 @@ const SavePostDialog = ({ postId, isSaved, type }: { postId: number; isSaved: bo
             </div>
           </div>
         </DialogHeader>
+
         <div className="min-h-[400px] max-h-[400px]  overflow-auto pr-2">
-          <FolderContent postId={postId} setIsSavedPost={setIsSavedPost} />
+          <FolderContent postId={postId} setIsSavedPost={setIsSavedPost} fetchNewFolders={fetchNewFolders} />
         </div>
       </DialogContent>
     </Dialog>
   );
 };
 
-const FolderContent = ({ postId, setIsSavedPost }) => {
+const FolderContent = ({ postId, setIsSavedPost, fetchNewFolders }) => {
   const [folders, setFolders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const handleSave = (folder) => {
@@ -102,7 +107,7 @@ const FolderContent = ({ postId, setIsSavedPost }) => {
 
   useEffect(() => {
     handleFetchFolders();
-  }, [postId]);
+  }, [postId, fetchNewFolders]);
 
   useEffect(() => {
     const isAllFoldersNotSaved = folders.every((f) => f.is_saved == false);
@@ -114,8 +119,10 @@ const FolderContent = ({ postId, setIsSavedPost }) => {
   }, [folders]);
   if (folders.length == 0 && !isLoading) {
     return (
-      <div className="w-full h-full flex justify-center items-center">
-        <h1>No Follower Found</h1>
+      <div className="w-full h-full flex flex-col justify-center items-center gap-5">
+        <SearchX className="w-16 h-16 text-gray-400" />
+        <h1>No Folder Found</h1>
+        <CreateFolderDialog handleFetchFolders={handleFetchFolders} type="button" />
       </div>
     );
   }
@@ -129,6 +136,9 @@ const FolderContent = ({ postId, setIsSavedPost }) => {
   }
   return (
     <div className="flex flex-col gap-1 overflow-y-auto overflow-x-hidden">
+      <div className="mb-2">
+        <CreateFolderDialog handleFetchFolders={handleFetchFolders} type="button" />
+      </div>
       {folders.map((folder, index) => {
         return (
           <div

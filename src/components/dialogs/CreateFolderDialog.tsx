@@ -15,7 +15,7 @@ const formSchema = z.object({
   description: z.string().max(500, "Description must be equal or less than 24 characters.").optional(),
 });
 
-const CreateFolderDialog = ({ handleFetchFolders }) => {
+const CreateFolderDialog = ({ handleFetchFolders, type = "default" }) => {
   const [openDialog, setOpenDialog] = useState<boolean>(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -53,9 +53,13 @@ const CreateFolderDialog = ({ handleFetchFolders }) => {
   return (
     <Dialog open={openDialog} onOpenChange={() => setOpenDialog(!openDialog)}>
       <DialogTrigger asChild>
-        <div className="border-[1px] h-full relative group cursor-pointer bg-slate-100 hover:bg-slate-200 rounded-xl overflow-hidden flex justify-center items-center">
-          <Plus className="w-10 h-10 text-slate-500" />
-        </div>
+        {type === "default" ? (
+          <div className="border-[1px] h-full relative group cursor-pointer bg-slate-100 hover:bg-slate-200 rounded-xl overflow-hidden flex justify-center items-center">
+            <Plus className="w-10 h-10 text-slate-500" />
+          </div>
+        ) : (
+          <Button className="float-end">Create New Folder</Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] lg:max-w-screen-sm">
         <DialogHeader>

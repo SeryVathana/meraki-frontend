@@ -33,6 +33,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import PostsContainer from "@/components/PostsContainer";
+import { supabase } from "@/lib/supabase";
 
 const PostDetailPage = () => {
   const auth = useSelector((state: RootState) => state.auth);
@@ -155,12 +156,16 @@ const PostDetailPage = () => {
       .finally(() => setIsLoadingComments(false));
   };
 
+  supabase.channel("post_details").on("postgres_changes", { event: "*", schema: "public", table: "comments" }, handleFetchComments).subscribe();
+
   const handleFetchPost = () => {
     fetch(`${import.meta.env.VITE_SERVER_URL}/post/${postId}`, { method: "GET", headers: { Authorization: `Bearer ${getToken()}` } })
       .then((res) => res.json())
       .then((data) => setPost(data.post))
       .finally(() => setIsLoading(false));
   };
+  supabase.channel("post_details").on("postgres_changes", { event: "*", schema: "public", table: "posts" }, handleFetchPost).subscribe();
+  supabase.channel("post_details").on("postgres_changes", { event: "*", schema: "public", table: "post_likes" }, handleFetchPost).subscribe();
 
   const handleFetchRelatedPosts = () => {
     fetch(`${import.meta.env.VITE_SERVER_URL}/post/related/${postId}`, { method: "GET", headers: { Authorization: `Bearer ${getToken()}` } })
@@ -239,6 +244,29 @@ const PostDetailPage = () => {
       });
   };
 
+  const handleDelteComment = (commentId: string) => {
+    fetch(`${import.meta.env.VITE_SERVER_URL}/comment/${commentId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status == 200) {
+          handleFetchComments();
+          toast({
+            title: "Comment deleted successfully.",
+            variant: "success",
+          });
+        } else {
+          toast({
+            title: "Failed to delete comment.",
+            variant: "destructive",
+          });
+        }
+      });
+  };
   useEffect(() => {
     setIsLoading(true);
     handleFetchPost();
@@ -322,72 +350,70 @@ const PostDetailPage = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {auth.userData.id == post.user_id || auth.userData.role == "admin" ? (
-                  <>
-                    <DropdownMenuItem asChild>
-                      <>
-                        <Link to={`/post/edit/${post.id}`} className="w-full py-0 text-left cursor-pointer">
-                          <div className="flex gap-2 justify-start items-center py-1">
-                            <Pen className="w-4 h-4" />
-                            <span>Edit</span>
-                          </div>
-                        </Link>
-                      </>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <>
-                        <Dialog open={isReportOpen} onOpenChange={() => setIsReportOpen(!isReportOpen)}>
-                          <DialogTrigger asChild>
-                            <div className="flex gap-2 justify-start items-center py-2 px-2 text-sm cursor-pointer hover:bg-gray-100 rounded-sm">
-                              <Trash className="w-4 h-4" />
-                              <span>Delete</span>
-                            </div>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogTitle>Delete Post</DialogTitle>
-                            <DialogDescription>Are you sure you want to delete this post? This action cannot be undone.</DialogDescription>
-                            <div className="flex gap-5 justify-end">
-                              <Button variant="outline" onClick={() => setIsReportOpen(!isReportOpen)}>
-                                Cancel
-                              </Button>
-                              <Button variant="destructive" onClick={() => handleDeletePost()}>
-                                Delete
-                              </Button>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                      </>
-                    </DropdownMenuItem>
-                  </>
-                ) : (
-                  <DropdownMenuItem asChild>
+                {auth.userData.id == post.user_id ||
+                  (auth.userData.role == "admin" && (
                     <>
-                      <Dialog open={isReportOpen} onOpenChange={() => setIsReportOpen(!isReportOpen)}>
-                        <DialogTrigger asChild>
-                          <div className="flex gap-2 justify-start items-center py-2 px-2 text-sm cursor-pointer hover:bg-gray-100 rounded-sm">
-                            <AlertTriangle className="w-4 h-4" />
-                            <span>Report</span>
-                          </div>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogTitle>Report Post</DialogTitle>
-                          <DialogDescription>If you believe this post violates our community guidelines, please report it.</DialogDescription>
-                          <div className="flex flex-col gap-5">
-                            <Textarea
-                              placeholder="Add reason here."
-                              className="border-2 min-h-[150px]"
-                              value={report}
-                              onChange={(e) => setReport(e.target.value)}
-                            />
-                            <Button variant="default" className="w-full font-semibold" onClick={() => handleSubmitReport()}>
-                              Report
-                            </Button>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
+                      <Link to={`/post/edit/${post.id}`} className="w-full py-0 text-left cursor-pointer">
+                        <div className="flex gap-2 justify-start items-center py-2 px-2 text-sm cursor-pointer hover:bg-gray-100 rounded-sm">
+                          <Pen className="w-4 h-4" />
+                          <span>Edit</span>
+                        </div>
+                      </Link>
+
+                      <DropdownMenuItem asChild>
+                        <>
+                          <Dialog open={isReportOpen} onOpenChange={() => setIsReportOpen(!isReportOpen)}>
+                            <DialogTrigger asChild>
+                              <div className="flex gap-2 justify-start items-center py-2 px-2 text-sm cursor-pointer hover:bg-gray-100 rounded-sm">
+                                <Trash className="w-4 h-4" />
+                                <span>Delete</span>
+                              </div>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogTitle>Delete Post</DialogTitle>
+                              <DialogDescription>Are you sure you want to delete this post? This action cannot be undone.</DialogDescription>
+                              <div className="flex gap-5 justify-end">
+                                <Button variant="outline" onClick={() => setIsReportOpen(!isReportOpen)}>
+                                  Cancel
+                                </Button>
+                                <Button variant="destructive" onClick={() => handleDeletePost()}>
+                                  Delete
+                                </Button>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        </>
+                      </DropdownMenuItem>
                     </>
-                  </DropdownMenuItem>
-                )}
+                  ))}
+
+                <DropdownMenuItem asChild>
+                  <>
+                    <Dialog open={isReportOpen} onOpenChange={() => setIsReportOpen(!isReportOpen)}>
+                      <DialogTrigger asChild>
+                        <div className="flex gap-2 justify-start items-center py-2 px-2 text-sm cursor-pointer hover:bg-gray-100 rounded-sm">
+                          <AlertTriangle className="w-4 h-4" />
+                          <span>Report</span>
+                        </div>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogTitle>Report Post</DialogTitle>
+                        <DialogDescription>If you believe this post violates our community guidelines, please report it.</DialogDescription>
+                        <div className="flex flex-col gap-5">
+                          <Textarea
+                            placeholder="Add reason here."
+                            className="border-2 min-h-[150px]"
+                            value={report}
+                            onChange={(e) => setReport(e.target.value)}
+                          />
+                          <Button variant="default" className="w-full font-semibold" onClick={() => handleSubmitReport()}>
+                            Report
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -445,27 +471,69 @@ const PostDetailPage = () => {
                     return (
                       <div key={comment.id}>
                         <div className="relative">
-                          <div className="flex gap-3 items-start">
-                            <Avatar className="w-8 h-8 min-w-8 min-h-8 rounded-full border overflow-hidden" onClick={() => navigate(`/user/${1}`)}>
-                              <AvatarImage src={comment.user_pf_img_url} alt="@shadcn" className="w-8 h-8 object-cover" />
-                              <AvatarFallback>CN</AvatarFallback>
-                            </Avatar>
+                          <div className="flex justify-between items-start">
+                            <div className="flex gap-3 items-start">
+                              <Avatar className="w-8 h-8 min-w-8 min-h-8 rounded-full border overflow-hidden" onClick={() => navigate(`/user/${1}`)}>
+                                <AvatarImage src={comment.user_pf_img_url} alt="@shadcn" className="w-8 h-8 object-cover" />
+                                <AvatarFallback>CN</AvatarFallback>
+                              </Avatar>
 
-                            <div>
-                              <p className="text-sm max-w-full ">
-                                <span className="font-semibold mr-2 cursor-pointer hover:underline" onClick={() => navigate(`/user/${1}`)}>
-                                  {comment.user_name}
-                                </span>{" "}
-                                <span className="break-words break-all">{comment.comment}</span>
-                              </p>
+                              <div>
+                                <p className="text-sm max-w-full ">
+                                  <span className="font-semibold mr-2 cursor-pointer hover:underline" onClick={() => navigate(`/user/${1}`)}>
+                                    {comment.user_name}
+                                  </span>
+                                  <span className="break-words break-all">
+                                    {comment.comment || <span className="text-muted-foreground">\*Comment Deleted*\</span>}
+                                  </span>
+                                </p>
 
-                              <div className="flex items-center gap-4 mb-3 mt-1 text-sm text-muted-foreground">
-                                <h1>{comment.created_at != undefined && formatDistance(new Date(comment?.created_at), new Date())}</h1>
-                                <button className="float-end text-sm hover:text-gray-400" onClick={() => handleMakeReply(comment.id)}>
-                                  Reply
-                                </button>
+                                <div className="flex items-center gap-4 mb-3 mt-1 text-sm text-muted-foreground">
+                                  <h1>{comment.created_at != undefined && formatDistance(new Date(comment?.created_at), new Date())}</h1>
+                                  <button className="float-end text-sm hover:text-gray-400" onClick={() => handleMakeReply(comment.id)}>
+                                    Reply
+                                  </button>
+                                </div>
                               </div>
                             </div>
+                            {(auth.userData.id == comment.user_id || auth.userData.role == "admin" || auth.userData.id == post.user_id) && (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon">
+                                    <Ellipsis className="w-3 h-3" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem asChild>
+                                    <>
+                                      <Dialog open={isReportOpen} onOpenChange={() => setIsReportOpen(!isReportOpen)}>
+                                        <DialogTrigger asChild>
+                                          <div className="flex gap-2 justify-start items-center py-2 px-2 text-sm cursor-pointer hover:bg-gray-100 rounded-sm">
+                                            <Trash className="w-4 h-4" />
+                                            <span>Delete</span>
+                                          </div>
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                          <DialogTitle>Delete Comment</DialogTitle>
+                                          <DialogDescription>
+                                            Are you sure you want to delete this comment? This action cannot be undone.
+                                          </DialogDescription>
+                                          <div className="flex gap-5 justify-end">
+                                            <Button variant="outline" onClick={() => setIsReportOpen(!isReportOpen)}>
+                                              Cancel
+                                            </Button>
+                                            <Button variant="destructive" onClick={() => handleDelteComment(comment.id)}>
+                                              Delete
+                                            </Button>
+                                          </div>
+                                        </DialogContent>
+                                      </Dialog>
+                                    </>
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            )}
                           </div>
 
                           {isReplying && replyToId == comment.id ? (
@@ -491,32 +559,75 @@ const PostDetailPage = () => {
                             ? comment.replies.map((reply: any) => {
                                 return (
                                   <div key={reply.id}>
-                                    <div className="flex gap-3 items-start">
-                                      <Avatar
-                                        className="w-8 h-8 min-w-8 min-h-8 rounded-full border overflow-hidden"
-                                        onClick={() => navigate(`/user/${1}`)}
-                                      >
-                                        <AvatarImage src={reply.user_pf_img_url} alt="@shadcn" className="w-8 h-8 object-cover" />
-                                        <AvatarFallback>CN</AvatarFallback>
-                                      </Avatar>
+                                    <div className="flex items-start justify-between">
+                                      <div className="flex gap-3 items-start">
+                                        <Avatar
+                                          className="w-8 h-8 min-w-8 min-h-8 rounded-full border overflow-hidden"
+                                          onClick={() => navigate(`/user/${1}`)}
+                                        >
+                                          <AvatarImage src={reply.user_pf_img_url} alt="@shadcn" className="w-8 h-8 object-cover" />
+                                          <AvatarFallback>CN</AvatarFallback>
+                                        </Avatar>
 
-                                      <div>
-                                        <p className="line-clamp-2 text-sm">
-                                          <span className="font-semibold mr-2 cursor-pointer hover:underline" onClick={() => navigate(`/user/${1}`)}>
-                                            {reply.user_name}
-                                          </span>{" "}
-                                          {reply.comment}
-                                        </p>
+                                        <div>
+                                          <p className="line-clamp-2 text-sm">
+                                            <span
+                                              className="font-semibold mr-2 cursor-pointer hover:underline"
+                                              onClick={() => navigate(`/user/${1}`)}
+                                            >
+                                              {reply.user_name}
+                                            </span>
+                                            {reply.comment || <span className="text-muted-foreground">\*Comment Deleted*\</span>}
+                                          </p>
 
-                                        <div className="flex items-center gap-4 mb-3 mt-1 text-xs">
-                                          <h1 className="text-muted-foreground">
-                                            {reply.created_at != undefined && formatDistance(new Date(reply.created_at), new Date())}
-                                          </h1>
-                                          <button className="float-end hover:text-gray-400" onClick={() => handleMakeReply(reply.id)}>
-                                            Reply
-                                          </button>
+                                          <div className="flex items-center gap-4 mb-3 mt-1 text-xs">
+                                            <h1 className="text-muted-foreground">
+                                              {reply.created_at != undefined && formatDistance(new Date(reply.created_at), new Date())}
+                                            </h1>
+                                            <button className="float-end hover:text-gray-400" onClick={() => handleMakeReply(reply.id)}>
+                                              Reply
+                                            </button>
+                                          </div>
                                         </div>
                                       </div>
+                                      {(auth.userData.id == reply.user_id || auth.userData.role == "admin" || auth.userData.id == post.user_id) && (
+                                        <DropdownMenu>
+                                          <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon">
+                                              <Ellipsis className="w-3 h-3" />
+                                            </Button>
+                                          </DropdownMenuTrigger>
+
+                                          <DropdownMenuContent align="end">
+                                            <DropdownMenuItem asChild>
+                                              <>
+                                                <Dialog open={isReportOpen} onOpenChange={() => setIsReportOpen(!isReportOpen)}>
+                                                  <DialogTrigger asChild>
+                                                    <div className="flex gap-2 justify-start items-center py-2 px-2 text-sm cursor-pointer hover:bg-gray-100 rounded-sm">
+                                                      <Trash className="w-4 h-4" />
+                                                      <span>Delete</span>
+                                                    </div>
+                                                  </DialogTrigger>
+                                                  <DialogContent>
+                                                    <DialogTitle>Delete Comment</DialogTitle>
+                                                    <DialogDescription>
+                                                      Are you sure you want to delete this comment? This action cannot be undone.
+                                                    </DialogDescription>
+                                                    <div className="flex gap-5 justify-end">
+                                                      <Button variant="outline" onClick={() => setIsReportOpen(!isReportOpen)}>
+                                                        Cancel
+                                                      </Button>
+                                                      <Button variant="destructive" onClick={() => handleDelteComment(reply.id)}>
+                                                        Delete
+                                                      </Button>
+                                                    </div>
+                                                  </DialogContent>
+                                                </Dialog>
+                                              </>
+                                            </DropdownMenuItem>
+                                          </DropdownMenuContent>
+                                        </DropdownMenu>
+                                      )}
                                     </div>
 
                                     {isReplying && replyToId == reply.id ? (

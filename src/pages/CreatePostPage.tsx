@@ -100,7 +100,26 @@ const CreatePostPage = () => {
   }
 
   function handleTempFileUpload(e: any) {
-    setUploadFile(e.target.files[0]);
+    const file = e.target.files[0];
+    if (file.size > 10000000) {
+      toast({
+        title: "File size too large",
+        description: "Please upload a file less than 10MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.type.split("/")[0] !== "image") {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an image file.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadFile(file);
     const url = URL.createObjectURL(e.target.files[0]);
     setTempImgURL(url);
   }

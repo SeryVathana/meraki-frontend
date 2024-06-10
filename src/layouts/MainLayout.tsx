@@ -1,4 +1,5 @@
 import { Navbar } from "@/components/Navbar";
+import { supabase } from "@/lib/supabase";
 import { useAppDispatch } from "@/redux/hook";
 import { fetchUserData } from "@/redux/slices/authThunk";
 import { getToken } from "@/utils/HelperFunctions";
@@ -8,16 +9,16 @@ import useSWR from "swr";
 
 const MainLayout = () => {
   const dispatch = useAppDispatch();
-  useEffect(() => {
-    // Store the interval id in a const, so you can cleanup later
-    // const intervalId = setInterval(() => {
-    dispatch(fetchUserData());
-    // }, 10000);
 
-    return () => {
-      // Since useEffect dependency array is empty, this will be called only on unmount
-      // clearInterval(intervalId);
-    };
+  const handleFetchUser = async () => {
+    dispatch(fetchUserData());
+  };
+  supabase.channel("user_info").on("postgres_changes", { event: "*", schema: "public", table: "group_invites" }, handleFetchUser).subscribe();
+  supabase.channel("user_info").on("postgres_changes", { event: "*", schema: "public", table: "group_requests" }, handleFetchUser).subscribe();
+  supabase.channel("user_info").on("postgres_changes", { event: "*", schema: "public", table: "user_followers" }, handleFetchUser).subscribe();
+
+  useEffect(() => {
+    dispatch(fetchUserData());
   }, []);
   return (
     <div className="w-full relative">

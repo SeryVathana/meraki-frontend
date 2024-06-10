@@ -1,11 +1,9 @@
 import PostsContainer from "@/components/PostsContainer";
-import { RootState } from "@/redux/store";
+import { supabase } from "@/lib/supabase";
 import { getToken } from "@/utils/HelperFunctions";
 import { LoaderCircle, SearchX } from "lucide-react";
 import { useEffect, useState } from "react";
-import { set } from "react-hook-form";
-import { useSelector } from "react-redux";
-import { redirect, useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 const PostsPage = () => {
   const [posts, setPosts] = useState<any[]>([]);
@@ -14,7 +12,6 @@ const PostsPage = () => {
   const tag = useParams().tag;
 
   const handleFetchPosts = () => {
-    setIsLoading(true);
     // Fetch posts
     fetch(`${import.meta.env.VITE_SERVER_URL}/post?tag=${tag}`, {
       method: "GET",
@@ -33,9 +30,12 @@ const PostsPage = () => {
       .finally(() => setIsLoading(false));
   };
 
+  supabase.channel("change_posts").on("postgres_changes", { event: "*", schema: "public", table: "posts" }, handleFetchPosts).subscribe();
+
   useEffect(() => {
     if (window.location.href.includes(tag)) {
       setPosts([]);
+      setIsLoading(true);
       handleFetchPosts();
     }
   }, [tag]);
