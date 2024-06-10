@@ -6,6 +6,8 @@ export const fetchUserData = createAsyncThunk("auth/fetchUserData", async (_, { 
   try {
     const accessToken = getToken();
 
+    if (!accessToken) return rejectWithValue("");
+
     const response = await axios.get(`${import.meta.env.VITE_SERVER_URL}/user`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -20,7 +22,7 @@ export const fetchUserData = createAsyncThunk("auth/fetchUserData", async (_, { 
     return { ...response.data.data, accessToken };
   } catch (e) {
     // console.log(e);
-    // removeToken();
+    removeToken();
     return rejectWithValue("");
   }
 });

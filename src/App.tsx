@@ -27,12 +27,17 @@ import ProtectedRoute from "./layouts/ProtectedLayout";
 import PostsPage from "./pages/PostsPage";
 import EditPostPage from "./pages/EditPostPage";
 import DashboardCategoriesPage from "./pages/DashboardCategoriesPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<EmptyLayout />}>
       <Route path="login" element={<LoginPage />} />
       <Route path="signup" element={<SignUpPage />} />
+
+      <Route path="reset-password" element={<ResetPasswordPage />} />
+      <Route path="forgot-password" element={<ForgotPasswordPage />} />
 
       <Route path="/" element={<ProtectedRoute />}>
         <Route path="/" element={<MainLayout />}>

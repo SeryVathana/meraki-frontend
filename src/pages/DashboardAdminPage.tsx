@@ -224,7 +224,7 @@ const UserItem = ({ user, handleFetchAdmins }) => {
             <Dialog open={openRemoveAlert} onOpenChange={setOpenRemoveAlert}>
               <DialogTrigger asChild>
                 <div className="flex gap-2 justify-start items-center py-2 px-2 text-sm cursor-pointer hover:bg-gray-100 rounded-sm">
-                  <span>Delete</span>
+                  <span>Remove Admin</span>
                 </div>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[525px]">

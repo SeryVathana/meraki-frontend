@@ -141,7 +141,7 @@ const SignUpPage = () => {
                 d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"
               ></path>
             </svg>
-            <span>Sign Up With Google</span>
+            <span>Sign in with Google</span>
           </Button>
 
           <h3 className="text-lg font-semibold text-center">Create New Account</h3>
@@ -203,7 +203,7 @@ const SignUpPage = () => {
         <img
           src="https://images.pexels.com/photos/23731983/pexels-photo-23731983/free-photo-of-a-sheep-is-standing-in-a-field-with-a-tree.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
           alt="Image"
-          className="min-h-[100vh] w-fu object-cover dark:brightness-[0.2] dark:grayscale"
+          className="max-h-[100vh] w-fu object-cover dark:brightness-[0.2] dark:grayscale"
         />
       </div>
     </div>

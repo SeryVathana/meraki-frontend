@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } 
 import { Textarea } from "./ui/textarea";
 import { useToast } from "./ui/use-toast";
 import { getToken } from "@/utils/HelperFunctions";
+import { group } from "console";
 
 const PostsContainer = ({ posts }: { posts: any[] }) => {
   const [data, setData]: any[] = useState<any[]>(posts);
@@ -156,32 +157,36 @@ const PostCard = ({ post, handleRemovePosts }) => {
                   </Link>
                 </>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <>
-                  <Dialog open={isDeleteOpen} onOpenChange={() => setIsDeleteOpen(!isDeleteOpen)}>
-                    <DialogTrigger asChild>
-                      <div className="flex gap-2 justify-start items-center py-2 px-2 text-sm cursor-pointer hover:bg-gray-100 rounded-sm">
-                        <Trash className="w-4 h-4" />
-                        <span>Delete</span>
-                      </div>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogTitle>Delete Post</DialogTitle>
-                      <DialogDescription>Are you sure you want to delete this post? This action cannot be undone.</DialogDescription>
-                      <div className="flex gap-5 justify-end">
-                        <Button variant="outline" onClick={() => setIsDeleteOpen(!isDeleteOpen)}>
-                          Cancel
-                        </Button>
-                        <Button variant="destructive" onClick={() => handleDeletePost()}>
-                          Delete
-                        </Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </>
-              </DropdownMenuItem>
             </>
           )}
+
+          {(auth.userData.id == post.user_id || auth.userData.role == "admin" || post.is_admin) && (
+            <DropdownMenuItem asChild>
+              <>
+                <Dialog open={isDeleteOpen} onOpenChange={() => setIsDeleteOpen(!isDeleteOpen)}>
+                  <DialogTrigger asChild>
+                    <div className="flex gap-2 justify-start items-center py-2 px-2 text-sm cursor-pointer hover:bg-gray-100 rounded-sm">
+                      <Trash className="w-4 h-4" />
+                      <span>Delete</span>
+                    </div>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogTitle>Delete Post</DialogTitle>
+                    <DialogDescription>Are you sure you want to delete this post? This action cannot be undone.</DialogDescription>
+                    <div className="flex gap-5 justify-end">
+                      <Button variant="outline" onClick={() => setIsDeleteOpen(!isDeleteOpen)}>
+                        Cancel
+                      </Button>
+                      <Button variant="destructive" onClick={() => handleDeletePost()}>
+                        Delete
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </>
+            </DropdownMenuItem>
+          )}
+
           <DropdownMenuItem asChild>
             <>
               <Dialog open={isReportOpen} onOpenChange={() => setIsReportOpen(!isReportOpen)}>

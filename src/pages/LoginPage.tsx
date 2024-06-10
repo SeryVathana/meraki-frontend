@@ -105,11 +105,11 @@ const LoginPage = () => {
               {errors.email && <p className="text-red-500">{errors.email.message}</p>}
             </div>
             <div className="grid gap-2">
-              <div className="flex items-center">
+              <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
-                {/* <Link to="/forgot-password" className="ml-auto inline-block text-sm underline">
+                <Link to="/forgot-password" className="ml-auto inline-block text-sm underline">
                   Forgot your password?
-                </Link> */}
+                </Link>
               </div>
               <Input id="password" type="password" placeholder="***********" {...register("password")} required />
               {errors.password && <p className="text-red-500">{errors.password.message}</p>}
@@ -155,7 +155,7 @@ const LoginPage = () => {
                 d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"
               ></path>
             </svg>
-            <span>Sign Up With Google</span>
+            <span>Sign in with Google</span>
           </Button>
         </div>
       </div>
@@ -171,5 +171,4 @@ const LoginPage = () => {
     </div>
   );
 };
-
 export default LoginPage;

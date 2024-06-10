@@ -1,25 +1,22 @@
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
-
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
-import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
+import { useAppDispatch } from "@/redux/hook";
 import { User } from "@/redux/slices/authSlice";
-import { useSelector } from "react-redux";
+import { fetchUserData } from "@/redux/slices/authThunk";
 import { RootState } from "@/redux/store";
 import { getToken } from "@/utils/HelperFunctions";
-import { useToast } from "@/components/ui/use-toast";
-import { useAppDispatch } from "@/redux/hook";
-import { fetchUserData } from "@/redux/slices/authThunk";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useSelector } from "react-redux";
+import { Link, useSearchParams } from "react-router-dom";
+import { z } from "zod";
 
 const passwordChangeSchema = z
   .object({
@@ -43,20 +40,21 @@ const SettingPage = () => {
   const [user, setUser] = useState<User | null>(null);
   const [errMsg, setErrMsg] = useState<string>("");
   const { toast } = useToast();
+  const [isChangingPassword, setIsChangingPassword] = useState<boolean>(false);
+  const [isResetingPassword, setIsResetingPassword] = useState<boolean>(false);
+
   const passwordForm = useForm<z.infer<typeof passwordChangeSchema>>({
     resolver: zodResolver(passwordChangeSchema),
   });
 
   function onSubmitPassword(values: z.infer<typeof passwordChangeSchema>) {
     setErrMsg("");
-    if (values.new_password === values.old_password) {
-      passwordForm.setError("new_password", { message: "New password can not be same as old password" });
-      return;
-    }
     if (values.new_password !== values.cf_new_password) {
       passwordForm.setError("cf_new_password", { message: "Password does not match" });
       return;
     }
+
+    setIsChangingPassword(true);
 
     const reqBody = {
       old_password: values.old_password,
@@ -78,7 +76,7 @@ const SettingPage = () => {
         }
 
         if (data.message == "Incorrect Old Password") {
-          setErrMsg("Old password is incorrect");
+          setErrMsg("Incorrect old password");
         }
 
         if (data.status == 200) {
@@ -96,8 +94,37 @@ const SettingPage = () => {
             variant: "destructive",
           });
         }
-      });
+      })
+      .finally(() => setIsChangingPassword(false));
   }
+
+  const handleResetPassword = () => {
+    setIsResetingPassword(true);
+    fetch(`${import.meta.env.VITE_SERVER_URL}/password/email`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getToken()}`,
+      },
+      body: JSON.stringify({ email: user?.email }),
+    })
+      .then((res) => {
+        if (res.status == 200) {
+          toast({
+            title: "Reset Password",
+            description: "An email has been sent to you with instructions on how to reset your password.",
+            variant: "success",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "Something went wrong",
+            variant: "destructive",
+          });
+        }
+      })
+      .finally(() => setIsResetingPassword(false));
+  };
 
   const [postParams] = useSearchParams("");
 
@@ -173,7 +200,9 @@ const SettingPage = () => {
                 <div>
                   <h1 className="text-xl font-bold mt-10">Credential Setting</h1>
                   <Separator className="mt-3 mb-8 " />
-                  <div className="my-10">
+
+                  <h1 className="text-lg font-bold">Change Password</h1>
+                  <div className="mb-10 mt-5">
                     <p className="font-semibold">Password must meet the following criteria:</p>
                     <ul className="text-slate-500 ml-2 space-y-1 my-2 text-sm">
                       <li>1. Must be at least 8 characters in length</li>
@@ -185,7 +214,7 @@ const SettingPage = () => {
                   </div>
 
                   <Form {...passwordForm}>
-                    <form onSubmit={passwordForm.handleSubmit(onSubmitPassword)} className="space-y-2 ">
+                    <form onSubmit={passwordForm.handleSubmit(onSubmitPassword)} className="space-y-2 relative ">
                       <FormField
                         control={passwordForm.control}
                         name="old_password"
@@ -241,10 +270,26 @@ const SettingPage = () => {
                       <div className="flex justify-center">{errMsg ? <p className="text-red-500">{errMsg}</p> : ""}</div>
 
                       <div className="w-full flex justify-end pt-5">
-                        <Button type="submit">Change Password</Button>
+                        {isChangingPassword ? (
+                          <Button variant="secondary" disabled={isChangingPassword}>
+                            Loading...
+                          </Button>
+                        ) : (
+                          <Button type="submit">Change Password</Button>
+                        )}
                       </div>
                     </form>
                   </Form>
+                </div>
+                <div>
+                  <h1 className="text-lg font-bold">Reset Password</h1>
+                  <p className="text-sm text-muted-foreground">
+                    If you have forgotten your password and need to reset it, please click the button below. An email will be sent to you with
+                    instructions on how to reset your password.
+                  </p>
+                  <Button variant="destructive" className="mt-5 float-end" onClick={() => handleResetPassword()} disabled={isResetingPassword}>
+                    {isResetingPassword ? "Loading..." : "Reset Password"}
+                  </Button>
                 </div>
               </div>
             ) : (
