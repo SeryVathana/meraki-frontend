@@ -12,7 +12,7 @@ const TransferOwnerDialog = ({ group }) => {
   const [isOpen, setOpen] = useState(false);
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={() => setOpen(!isOpen)}>
       <DialogTrigger asChild>
         <Button variant={"destructive"}>Transfer ownership</Button>
       </DialogTrigger>
@@ -104,7 +104,6 @@ const TransferAlertDialog = ({ group, selectedUser }) => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleTransferOwnership = () => {
@@ -171,7 +170,7 @@ const TransferAlertDialog = ({ group, selectedUser }) => {
           {error && <p className="text-red-500 text-sm">{errorMessage}</p>}
 
           <div className="flex gap-5 justify-end mt-5">
-            <Button variant="outline" onClick={() => setOpen(!isOpen)}>
+            <Button variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
             <Button variant="destructive" disabled={loading} onClick={() => handleTransferOwnership()}>

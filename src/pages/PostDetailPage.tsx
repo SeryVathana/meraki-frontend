@@ -50,6 +50,7 @@ const PostDetailPage = () => {
   const [isLoadingComments, setIsLoadingComments] = useState<boolean>(false);
   const [isLiking, setIsLiking] = useState<boolean>(false);
   const [isReportOpen, setIsReportOpen] = useState<boolean>(false);
+  const [isDeleteCommentOpen, setIsDeleteCommentOpen] = useState<boolean>(false);
   const [report, setReport] = useState<string>("");
   const [isReporting, setIsReporting] = useState<boolean>(false);
   const [posts, setPosts] = useState<any[]>([]);
@@ -156,7 +157,7 @@ const PostDetailPage = () => {
       .finally(() => setIsLoadingComments(false));
   };
 
-  supabase.channel("post_details").on("postgres_changes", { event: "*", schema: "public", table: "comments" }, handleFetchComments).subscribe();
+  supabase.channel("post_comments").on("postgres_changes", { event: "*", schema: "public", table: "comments" }, handleFetchComments).subscribe();
 
   const handleFetchPost = () => {
     fetch(`${import.meta.env.VITE_SERVER_URL}/post/${postId}`, { method: "GET", headers: { Authorization: `Bearer ${getToken()}` } })
@@ -165,7 +166,7 @@ const PostDetailPage = () => {
       .finally(() => setIsLoading(false));
   };
   supabase.channel("post_details").on("postgres_changes", { event: "*", schema: "public", table: "posts" }, handleFetchPost).subscribe();
-  supabase.channel("post_details").on("postgres_changes", { event: "*", schema: "public", table: "post_likes" }, handleFetchPost).subscribe();
+  supabase.channel("post_likes").on("postgres_changes", { event: "*", schema: "public", table: "post_likes" }, handleFetchPost).subscribe();
 
   const handleFetchRelatedPosts = () => {
     fetch(`${import.meta.env.VITE_SERVER_URL}/post/related/${postId}`, { method: "GET", headers: { Authorization: `Bearer ${getToken()}` } })
@@ -265,7 +266,8 @@ const PostDetailPage = () => {
             variant: "destructive",
           });
         }
-      });
+      })
+      .finally(() => setIsDeleteCommentOpen(false));
   };
   useEffect(() => {
     setIsLoading(true);
@@ -506,7 +508,7 @@ const PostDetailPage = () => {
                                 <DropdownMenuContent align="end">
                                   <DropdownMenuItem asChild>
                                     <>
-                                      <Dialog open={isReportOpen} onOpenChange={() => setIsReportOpen(!isReportOpen)}>
+                                      <Dialog open={isDeleteCommentOpen} onOpenChange={() => setIsDeleteCommentOpen(!isDeleteCommentOpen)}>
                                         <DialogTrigger asChild>
                                           <div className="flex gap-2 justify-start items-center py-2 px-2 text-sm cursor-pointer hover:bg-gray-100 rounded-sm">
                                             <Trash className="w-4 h-4" />
@@ -519,7 +521,7 @@ const PostDetailPage = () => {
                                             Are you sure you want to delete this comment? This action cannot be undone.
                                           </DialogDescription>
                                           <div className="flex gap-5 justify-end">
-                                            <Button variant="outline" onClick={() => setIsReportOpen(!isReportOpen)}>
+                                            <Button variant="outline" onClick={() => setIsDeleteCommentOpen(false)}>
                                               Cancel
                                             </Button>
                                             <Button variant="destructive" onClick={() => handleDelteComment(comment.id)}>
@@ -600,7 +602,7 @@ const PostDetailPage = () => {
                                           <DropdownMenuContent align="end">
                                             <DropdownMenuItem asChild>
                                               <>
-                                                <Dialog open={isReportOpen} onOpenChange={() => setIsReportOpen(!isReportOpen)}>
+                                                <Dialog open={isDeleteCommentOpen} onOpenChange={() => setIsDeleteCommentOpen(!isDeleteCommentOpen)}>
                                                   <DialogTrigger asChild>
                                                     <div className="flex gap-2 justify-start items-center py-2 px-2 text-sm cursor-pointer hover:bg-gray-100 rounded-sm">
                                                       <Trash className="w-4 h-4" />
@@ -613,7 +615,7 @@ const PostDetailPage = () => {
                                                       Are you sure you want to delete this comment? This action cannot be undone.
                                                     </DialogDescription>
                                                     <div className="flex gap-5 justify-end">
-                                                      <Button variant="outline" onClick={() => setIsReportOpen(!isReportOpen)}>
+                                                      <Button variant="outline" onClick={() => setIsDeleteCommentOpen(false)}>
                                                         Cancel
                                                       </Button>
                                                       <Button variant="destructive" onClick={() => handleDelteComment(reply.id)}>
