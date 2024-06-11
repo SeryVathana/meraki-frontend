@@ -14,7 +14,7 @@ const EditFolderDialog = ({ folder, handleFetchFolderInfo }: { folder: any; hand
   const [open, setOpen] = useState(false);
 
   const formSchema = z.object({
-    title: z.string({ required_error: "Name is required" }).min(3, "Group name must 3 characters long.").max(50),
+    title: z.string({ required_error: "Folder name is required" }).min(1, "Name is required").max(50),
     description: z.string().optional().or(z.literal("")),
   });
 

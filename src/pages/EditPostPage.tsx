@@ -80,11 +80,19 @@ const EditPostPage = () => {
     })
       .then((res) => res.json())
       .then((data) => {
-        toast({
-          title: "Successfully update post.",
-          variant: "success",
-          description: "Your post is now updated.",
-        });
+        if (data.status == 200) {
+          toast({
+            title: "Successfully update post.",
+            variant: "success",
+            description: "Your post is now updated.",
+          });
+        } else {
+          toast({
+            title: "Failed to update post.",
+            variant: "destructive",
+            description: "Please try again later.",
+          });
+        }
       })
       .catch((err) => {
         console.log(err);

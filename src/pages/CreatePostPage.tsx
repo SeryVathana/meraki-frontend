@@ -19,14 +19,6 @@ const formSchema = z.object({
   description: z.string().optional(),
 });
 
-type ImageResType = {
-  storageFileName: string;
-  downloadURL: string;
-  message: string;
-  name: string;
-  type: string;
-};
-
 const CreatePostPage = () => {
   const [uploadFile, setUploadFile] = useState<Blob | null>(null);
   const [tempImgURL, setTempImgURL] = useState<string>("");
@@ -74,28 +66,37 @@ const CreatePostPage = () => {
     })
       .then((res) => res.json())
       .then((data) => {
-        setIsLoading(false);
-        toast({
-          title: "Successfully published post.",
-          variant: "success",
-          description: "Your post is now live.",
-        });
+        if (data.status == 200) {
+          toast({
+            title: "Successfully published post.",
+            variant: "success",
+            description: "Your post is now live.",
+          });
 
-        setUploadFile(null);
-        setTempImgURL("");
-        setSelectedTag([]);
+          setUploadFile(null);
+          setTempImgURL("");
+          setSelectedTag([]);
 
-        form.clearErrors();
-        form.reset();
+          form.clearErrors();
+          form.reset();
+        } else {
+          toast({
+            title: "Failed to publish post.",
+            variant: "destructive",
+            description: "Please try again later.",
+          });
+        }
       })
       .catch((err) => {
         console.log(err);
-        setIsLoading(false);
         toast({
           title: "Failed to publish post.",
           variant: "destructive",
           description: "Please try again later.",
         });
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   }
 
