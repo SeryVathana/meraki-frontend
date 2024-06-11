@@ -92,6 +92,8 @@ const GroupInvitesContent = () => {
     })
       .then((res) => res.json())
       .then((data) => {
+        
+        setIsOpenAlert(false);
         handleFetchGroups();
       })
       .catch((err) => {

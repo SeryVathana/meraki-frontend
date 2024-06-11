@@ -16,8 +16,6 @@ import { group } from "console";
 const PostsContainer = ({ posts }: { posts: any[] }) => {
   const [data, setData]: any[] = useState<any[]>(posts);
 
-  console.log(data);
-
   const handleRemovePosts = (postId: number) => {
     const updatedPosts = data.filter((post) => post.id !== postId);
     setData(updatedPosts);

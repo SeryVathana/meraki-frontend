@@ -11,11 +11,12 @@ const MainLayout = () => {
   const dispatch = useAppDispatch();
 
   const handleFetchUser = async () => {
+    console.log("fetching user data");
     dispatch(fetchUserData());
   };
-  supabase.channel("user_info").on("postgres_changes", { event: "*", schema: "public", table: "group_invites" }, handleFetchUser).subscribe();
-  supabase.channel("user_info").on("postgres_changes", { event: "*", schema: "public", table: "group_requests" }, handleFetchUser).subscribe();
-  supabase.channel("user_info").on("postgres_changes", { event: "*", schema: "public", table: "user_followers" }, handleFetchUser).subscribe();
+  supabase.channel("user_invite").on("postgres_changes", { event: "*", schema: "public", table: "group_invites" }, handleFetchUser).subscribe();
+  supabase.channel("user_request").on("postgres_changes", { event: "*", schema: "public", table: "group_requests" }, handleFetchUser).subscribe();
+  supabase.channel("user_follower").on("postgres_changes", { event: "*", schema: "public", table: "user_followers" }, handleFetchUser).subscribe();
 
   useEffect(() => {
     dispatch(fetchUserData());

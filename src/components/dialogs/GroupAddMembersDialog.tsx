@@ -7,6 +7,7 @@ import { Dot, LoaderCircle, Search, SearchX } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
+import { supabase } from "@/lib/supabase";
 
 const GroupAddMembersDialog = ({ group, type }: { group: any; type: string }) => {
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -61,6 +62,8 @@ const UserContent = ({ group, searchQuery }) => {
       });
   };
 
+  supabase.channel("user_invite").on("postgres_changes", { event: "*", schema: "public", table: "group_invites" }, handleFetchUsers).subscribe();
+
   const handleCreateInvite = (userId) => {
     setIsInviting(userId);
     const reqBody = {
@@ -86,10 +89,9 @@ const UserContent = ({ group, searchQuery }) => {
 
   const handleUninvite = (userId) => {
     setIsCanceling(userId);
-    fetch(`${import.meta.env.VITE_SERVER_URL}/group/invite/${group.id}`, {
+    fetch(`${import.meta.env.VITE_SERVER_URL}/group/invite/${group.id}/${userId}`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
-      body: JSON.stringify({ user_id: userId }),
     })
       .then((res) => res.json())
       .then((data) => {

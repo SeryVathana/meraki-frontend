@@ -15,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { Button } from "../ui/button";
 import { useToast } from "../ui/use-toast";
+import TransferOwnerDialog from "./TransferOwnerDialog";
 
 const EditGroupDialog = ({ group, handleFetchGroupInfo, type }: { group: any; handleFetchGroupInfo: any; type: string }) => {
   const [open, setOpen] = useState(false);
@@ -195,6 +196,17 @@ const EditGroupContent = ({ group, setOpenDialog, handleFetchGroupInfo }: { grou
             </form>
           </Form>
         </div>
+      </div>
+
+      <div className="mt-20 space-y-5">
+        <div>
+          <h1 className="text-lg font-semibold">
+            Transfer Ownership <span className="text-xs text-gray-500">- Transfer ownership of this group to another member.</span>
+          </h1>
+          <p className="text-md">Transfer ownership of this group to another member. You will no longer be the owner of this group.</p>
+        </div>
+
+        <TransferOwnerDialog group={group} />
       </div>
 
       <DeleteGroupContent group={group} />
