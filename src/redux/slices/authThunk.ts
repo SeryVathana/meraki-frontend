@@ -36,11 +36,15 @@ export const signOut = createAsyncThunk("auth/signOut", async () => {
   //get token
   const token = getToken();
 
-  await axios.get(`${import.meta.env.VITE_SERVER_URL}/auth/logout`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
   removeToken();
+
+  try {
+    await axios.get(`${import.meta.env.VITE_SERVER_URL}/auth/logout`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  } catch (e) {
+    console.log(e);
+  }
 });
