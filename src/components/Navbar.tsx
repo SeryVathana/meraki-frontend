@@ -44,14 +44,17 @@ export function Navbar() {
     navigate("/login");
   };
 
-  const tag = useParams().tag;
-
   const getFullName = () => {
     if (auth?.userData.first_name && auth?.userData.last_name) {
       return `${capitalizeFirstLetter(auth?.userData.first_name)} ${capitalizeFirstLetter(auth?.userData.last_name)}`;
     } else {
       return auth?.userData.email;
     }
+  };
+
+  const handleChangeTag = (tag) => {
+    navigate(`/tag/${tag.replace(" ", "_")}`);
+    setSelectedTag(tag);
   };
 
   React.useEffect(() => {
@@ -61,20 +64,6 @@ export function Navbar() {
         setTags(data.tags);
       });
   }, []);
-
-  React.useEffect(() => {
-    if (tag) {
-      console.log(tag);
-      setSelectedTag(tag);
-    }
-  }, [tag]);
-
-  React.useEffect(() => {
-    // Only navigate if selectedTag is set to a specific tag (not 'all') and the URL doesn't already match
-    if (selectedTag !== "all" && !window.location.href.includes(`/tag/${selectedTag}`)) {
-      navigate(`/tag/${selectedTag.replace(" ", "_")}`);
-    }
-  }, [selectedTag]);
 
   return (
     <div className="w-full flex items-center gap-10">
@@ -87,7 +76,7 @@ export function Navbar() {
             <Select
               value={selectedTag.replace(" ", "_")}
               onValueChange={(val) => {
-                setSelectedTag(val);
+                handleChangeTag(val);
               }}
             >
               <SelectTrigger className="w-[150px]">

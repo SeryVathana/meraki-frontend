@@ -35,7 +35,6 @@ const PostsPage = () => {
 
   useEffect(() => {
     if (window.location.href.includes(tag)) {
-      console.log(tag);
       setPosts([]);
       setIsLoading(true);
       handleFetchPosts();
