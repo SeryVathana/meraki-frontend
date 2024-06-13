@@ -55,12 +55,6 @@ export function Navbar() {
   };
 
   React.useEffect(() => {
-    if (window.location.href.includes("tag") || window.location.href == "/") {
-      navigate(`/tag/${selectedTag}`);
-    }
-  }, [selectedTag]);
-
-  React.useEffect(() => {
     fetch(`${import.meta.env.VITE_SERVER_URL}/tag`, { headers: { Authorization: `Bearer ${getToken()}` } })
       .then((res) => res.json())
       .then((data) => {
@@ -70,9 +64,18 @@ export function Navbar() {
 
   React.useEffect(() => {
     if (tag) {
+      console.log(tag);
       setSelectedTag(tag);
     }
   }, [tag]);
+
+  React.useEffect(() => {
+    // Only navigate if selectedTag is set to a specific tag (not 'all') and the URL doesn't already match
+    if (selectedTag !== "all" && !window.location.href.includes(`/tag/${selectedTag}`)) {
+      navigate(`/tag/${selectedTag.replace(" ", "_")}`);
+    }
+  }, [selectedTag]);
+
   return (
     <div className="w-full flex items-center gap-10">
       <NavLink to="/">
@@ -82,7 +85,7 @@ export function Navbar() {
         {user && (window.location.href.includes("tag") || window.location.href == "/") && (
           <NavigationMenuList>
             <Select
-              value={selectedTag}
+              value={selectedTag.replace(" ", "_")}
               onValueChange={(val) => {
                 setSelectedTag(val);
               }}
@@ -93,7 +96,7 @@ export function Navbar() {
               <SelectContent>
                 <SelectItem value="all">All</SelectItem>
                 {tags.map((tag, i) => (
-                  <SelectItem key={tag.id} value={String(tag.name).toLowerCase()}>
+                  <SelectItem key={tag.id} value={String(tag.name.replace(" ", "_")).toLowerCase()}>
                     {tag.name}
                   </SelectItem>
                 ))}

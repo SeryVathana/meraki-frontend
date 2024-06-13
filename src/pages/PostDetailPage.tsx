@@ -50,6 +50,7 @@ const PostDetailPage = () => {
   const [isLoadingComments, setIsLoadingComments] = useState<boolean>(false);
   const [isLiking, setIsLiking] = useState<boolean>(false);
   const [isReportOpen, setIsReportOpen] = useState<boolean>(false);
+  const [isDeletePostOpen, setIsDeletePostOpen] = useState<boolean>(false);
   const [isDeleteCommentOpen, setIsDeleteCommentOpen] = useState<boolean>(false);
   const [report, setReport] = useState<string>("");
   const [isReporting, setIsReporting] = useState<boolean>(false);
@@ -362,7 +363,7 @@ const PostDetailPage = () => {
 
                       <DropdownMenuItem asChild>
                         <>
-                          <Dialog open={isReportOpen} onOpenChange={() => setIsReportOpen(!isReportOpen)}>
+                          <Dialog open={isDeletePostOpen} onOpenChange={() => setIsDeletePostOpen(!isDeletePostOpen)}>
                             <DialogTrigger asChild>
                               <div className="flex gap-2 justify-start items-center py-2 px-2 text-sm cursor-pointer hover:bg-gray-100 rounded-sm">
                                 <Trash className="w-4 h-4" />
@@ -373,7 +374,7 @@ const PostDetailPage = () => {
                               <DialogTitle>Delete Post</DialogTitle>
                               <DialogDescription>Are you sure you want to delete this post? This action cannot be undone.</DialogDescription>
                               <div className="flex gap-5 justify-end">
-                                <Button variant="outline" onClick={() => setIsReportOpen(!isReportOpen)}>
+                                <Button variant="outline" onClick={() => setIsDeletePostOpen(!isDeletePostOpen)}>
                                   Cancel
                                 </Button>
                                 <Button variant="destructive" onClick={() => handleDeletePost()}>

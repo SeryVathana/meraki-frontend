@@ -13,7 +13,8 @@ const PostsPage = () => {
 
   const handleFetchPosts = () => {
     // Fetch posts
-    fetch(`${import.meta.env.VITE_SERVER_URL}/post?tag=${tag}`, {
+
+    fetch(`${import.meta.env.VITE_SERVER_URL}/post?tag=${tag.replace(" ", "_")}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -34,6 +35,7 @@ const PostsPage = () => {
 
   useEffect(() => {
     if (window.location.href.includes(tag)) {
+      console.log(tag);
       setPosts([]);
       setIsLoading(true);
       handleFetchPosts();
