@@ -6,7 +6,6 @@ import { storage } from "@/lib/firebase";
 import { getToken } from "@/utils/HelperFunctions";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DialogDescription } from "@radix-ui/react-dialog";
-import { Label } from "@radix-ui/react-dropdown-menu";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { Globe, LoaderCircle, Lock, Upload, X } from "lucide-react";
 import { useState } from "react";
@@ -16,6 +15,7 @@ import { z } from "zod";
 import { Button } from "../ui/button";
 import { useToast } from "../ui/use-toast";
 import TransferOwnerDialog from "./TransferOwnerDialog";
+import { Label } from "../ui/label";
 
 const EditGroupDialog = ({ group, handleFetchGroupInfo, type }: { group: any; handleFetchGroupInfo: any; type: string }) => {
   const [open, setOpen] = useState(false);
@@ -218,19 +218,33 @@ const DeleteGroupContent = ({ group }: { group: any }) => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [openDialog, setOpenDialog] = useState<boolean>(false);
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const { toast } = useToast();
 
   function handleDeleteGroup() {
+    if (!password) {
+      setError(true);
+      setErrorMessage("Password is required.");
+      return;
+    }
+
     setIsLoading(true);
+
     fetch(`${import.meta.env.VITE_SERVER_URL}/group/${group.id}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${getToken()}` },
+      headers: { Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ password: password }),
     })
       .then((res) => res.json())
       .then((data) => {
         setIsLoading(false);
 
-        if (data.status == 200) {
+        if (data.status == 401) {
+          setError(true);
+          setErrorMessage("Incorrect password. Please try again");
+        } else if (data.status == 200) {
           navigate("/tag/all");
           toast({ title: "Success.", description: "Group deleted successfully.", variant: "success" });
         } else {
@@ -269,9 +283,24 @@ const DeleteGroupContent = ({ group }: { group: any }) => {
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle className="my-3 flex items-center">Delete Group</DialogTitle>
-                    <DialogDescription>Not twice but thrice now.</DialogDescription>
+                    <DialogDescription>
+                      Are you sure you want to delete this group? This action cannot be undone. Enter your password to confirm.
+                    </DialogDescription>
                   </DialogHeader>
-                  <div className="grid grid-cols-3 gap-5">
+                  <div className="space-y-1 my-5">
+                    <Label htmlFor="password">Enter your password</Label>
+                    <Input
+                      id="password"
+                      placeholder="**************"
+                      type="password"
+                      autoComplete="new-password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                    {error && <p className="text-red-500 text-sm">{errorMessage}</p>}
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div></div>
                     <Button variant="outline" className="w-full" onClick={() => setOpenDialog(false)}>
                       Cancel
                     </Button>
