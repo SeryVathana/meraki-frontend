@@ -214,7 +214,7 @@ const CreatePostPage = () => {
                 </div>
                 <TagDropDown selectedTags={selectedTag} setSelectedTags={setSelectedTag} />
                 <div className="w-full flex justify-end">
-                  <Button type="submit" disabled={isLoading}>
+                  <Button type="submit" disabled={!uploadFile || isLoading}>
                     {isLoading ? "Loading" : "Publish"}
                   </Button>
                 </div>
