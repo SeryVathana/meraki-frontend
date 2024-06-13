@@ -54,13 +54,16 @@ const UsersContainer = ({ searchQuery }) => {
   };
 
   useEffect(() => {
-    setIsLoading(true);
-    handleFetchRandomUsers();
-  }, []);
+    if (searchQuery.length < 1) {
+      setIsLoading(true);
+      handleFetchRandomUsers();
+    }
+  }, [searchQuery]);
 
   useEffect(() => {
     if (searchQuery.length < 2) return;
     setIsLoading(true);
+    setIsSeeMoreClicked(false);
     handleFetchUsers();
   }, [searchQuery]);
 
@@ -142,13 +145,16 @@ const GroupsContainer = ({ searchQuery }) => {
   };
 
   useEffect(() => {
-    setIsLoading(true);
-    handleFetchRandomGroups();
-  }, []);
+    if (searchQuery.length < 1) {
+      setIsLoading(true);
+      handleFetchRandomGroups();
+    }
+  }, [searchQuery]);
 
   useEffect(() => {
     if (searchQuery.length < 2) return;
     setIsLoading(true);
+    setIsSeeMoreClicked(false);
     handleFetchGroups();
   }, [searchQuery]);
   return (
@@ -237,9 +243,11 @@ const PostsContainer = ({ searchQuery }) => {
   };
 
   useEffect(() => {
-    setIsLoading(true);
-    handleFetchRandomPosts();
-  }, []);
+    if (searchQuery.length < 1) {
+      setIsLoading(true);
+      handleFetchRandomPosts();
+    }
+  }, [searchQuery]);
 
   useEffect(() => {
     if (searchQuery.length < 2) return;

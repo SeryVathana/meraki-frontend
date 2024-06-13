@@ -185,33 +185,35 @@ const PostCard = ({ post, handleRemovePosts }) => {
             </DropdownMenuItem>
           )}
 
-          <DropdownMenuItem asChild>
-            <>
-              <Dialog open={isReportOpen} onOpenChange={() => setIsReportOpen(!isReportOpen)}>
-                <DialogTrigger asChild>
-                  <div className="flex gap-2 justify-start items-center py-2 px-2 text-sm cursor-pointer hover:bg-gray-100 rounded-sm">
-                    <AlertTriangle className="w-4 h-4" />
-                    <span>Report</span>
-                  </div>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogTitle>Report Post</DialogTitle>
-                  <DialogDescription>If you believe this post violates our community guidelines, please report it.</DialogDescription>
-                  <div className="flex flex-col gap-5">
-                    <Textarea
-                      placeholder="Add reason here."
-                      className="border-2 min-h-[150px]"
-                      value={report}
-                      onChange={(e) => setReport(e.target.value)}
-                    />
-                    <Button variant="default" className="w-full font-semibold" onClick={() => handleSubmitReport()}>
-                      Report
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </>
-          </DropdownMenuItem>
+          {auth.userData.id != post.user_id && (
+            <DropdownMenuItem asChild>
+              <>
+                <Dialog open={isReportOpen} onOpenChange={() => setIsReportOpen(!isReportOpen)}>
+                  <DialogTrigger asChild>
+                    <div className="flex gap-2 justify-start items-center py-2 px-2 text-sm cursor-pointer hover:bg-gray-100 rounded-sm">
+                      <AlertTriangle className="w-4 h-4" />
+                      <span>Report</span>
+                    </div>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogTitle>Report Post</DialogTitle>
+                    <DialogDescription>If you believe this post violates our community guidelines, please report it.</DialogDescription>
+                    <div className="flex flex-col gap-5">
+                      <Textarea
+                        placeholder="Add reason here."
+                        className="border-2 min-h-[150px]"
+                        value={report}
+                        onChange={(e) => setReport(e.target.value)}
+                      />
+                      <Button variant="default" className="w-full font-semibold" onClick={() => handleSubmitReport()}>
+                        Report
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </>
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 
