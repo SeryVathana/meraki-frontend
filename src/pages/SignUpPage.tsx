@@ -9,7 +9,7 @@ import { useForm } from "react-hook-form";
 import { useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
-import { getToken } from "@/utils/HelperFunctions";
+import { getToken, setToken } from "@/utils/HelperFunctions";
 import { toast, useToast } from "@/components/ui/use-toast";
 
 const formSchema = z
@@ -70,9 +70,10 @@ const SignUpPage = () => {
           toast({
             title: "Successfully registered account.",
             variant: "success",
-            description: "Please login to continue.",
+            description: "Welcome to the Meraki family!",
           });
-          navigate("/login");
+          setToken(data.token);
+          navigate("/");
         } else {
           if (data.status == 401) {
             // Handle error here
