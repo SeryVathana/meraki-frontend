@@ -112,17 +112,35 @@ const FolderContent = ({ postId, setIsSavedPost, fetchNewFolders }) => {
   }, [folders]);
   if (folders.length == 0 && !isLoading) {
     return (
-      <div className="w-full h-full flex flex-col justify-center items-center gap-5">
-        <SearchX className="w-16 h-16 text-gray-400" />
-        <h1>No Folder Found</h1>
+      <div>
+        <div className="flex gap-2 mb-2">
+          <div className="relative w-full mr-auto">
+            <Input placeholder="Search folders..." className="pr-10 " />
+            <Search className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-600 w-5" />
+          </div>
+
+          <CreateFolderDialog handleFetchFolders={handleFetchFolders} type="button" />
+        </div>
+        <div className="h-[300px] flex flex-col justify-center items-center gap-5">
+          <SearchX className="w-16 h-16 text-gray-400" />
+          <h1>No Folder Found</h1>
+        </div>
       </div>
     );
   }
 
   if (folders.length == 0 && isLoading) {
     return (
-      <div className="w-full h-full flex justify-center items-center">
-        <h1>Loading...</h1>
+      <div>
+        <div className="flex gap-2 mb-2">
+          <div className="relative w-full mr-auto">
+            <Input placeholder="Search folders..." className="pr-10 " />
+            <Search className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-600 w-5" />
+          </div>
+        </div>
+        <div className="h-[300px] flex justify-center items-center">
+          <h1>Loading...</h1>
+        </div>
       </div>
     );
   }
