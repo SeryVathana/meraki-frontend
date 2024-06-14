@@ -1,41 +1,77 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { RootState } from "@/redux/store";
+import { getToken } from "@/utils/HelperFunctions";
+import { AlertTriangle, Ellipsis, Pen, Trash } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import SavePostDialog from "./dialogs/SavePostDialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
-import { AlertTriangle, Ellipsis, Pen, Trash } from "lucide-react";
-import { RootState } from "@/redux/store";
-import { useSelector } from "react-redux";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "./ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { Textarea } from "./ui/textarea";
 import { useToast } from "./ui/use-toast";
-import { getToken } from "@/utils/HelperFunctions";
-import { group } from "console";
 
 const PostsContainer = ({ posts }: { posts: any[] }) => {
   const [data, setData]: any[] = useState<any[]>(posts);
+  const [sortedData, setSortedData] = useState([]);
 
   const handleRemovePosts = (postId: number) => {
-    const updatedPosts = data.filter((post) => post.id !== postId);
-    setData(updatedPosts);
+    // const updatedPosts = data.filter((post) => post.id !== postId);
+    const updatedPosts = sortedData.filter((post) => post.id !== postId);
+    // setData(updatedPosts);
+    setSortedData(updatedPosts);
   };
 
   useEffect(() => {
     setData(posts);
   }, [posts]);
 
+  useEffect(() => {
+    // Calculate the number of columns based on window width
+    const handleResize = () => {
+      const width = window.innerWidth;
+      let columns = 2; // Default to 2 columns
+      if (width >= 1536) columns = 6; // 2xl
+      else if (width >= 1280) columns = 5; // xl
+      else if (width >= 1024) columns = 4; // lg
+      else if (width >= 768) columns = 3; // md
+
+      setSortedData(sortDataIntoColumns(data, columns));
+    };
+
+    handleResize(); // Initial calculation
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [data]);
+
   if (!data) {
     return <h1>Loading</h1>;
   }
 
   return (
-    <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 2xl:columns-6 gap-1 sm:gap-2 md:gap-3 lg:gap-4 xl:gap-5 space-y-1 sm:space-y-2 md:space-y-3 lg:space-y-4 xl:space-y-5 mt-3">
-      {data?.map((post: any, index: number) => {
-        return <PostCard post={post} handleRemovePosts={handleRemovePosts} key={index} />;
-      })}
+    <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 2xl:columns-6 gap-1 sm:gap-2 md:gap-3 lg:gap-4 xl:gap-5 mt-3">
+      {sortedData.map((post, index) => (
+        <div key={index} className="mb-1 sm:mb-2 md:mb-3 lg:mb-4 xl:mb-5">
+          <PostCard post={post} handleRemovePosts={handleRemovePosts} />
+        </div>
+      ))}
     </div>
   );
+};
+
+const sortDataIntoColumns = (data, columns) => {
+  const sortedData = Array.from({ length: columns }, () => []);
+
+  data.forEach((item, index) => {
+    sortedData[index % columns].push(item);
+  });
+
+  // Flatten the sorted data
+  return sortedData.flat();
 };
 
 const PostCard = ({ post, handleRemovePosts }) => {
