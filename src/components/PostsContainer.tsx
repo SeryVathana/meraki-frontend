@@ -13,7 +13,6 @@ import { Textarea } from "./ui/textarea";
 import { useToast } from "./ui/use-toast";
 
 const PostsContainer = ({ posts }: { posts: any[] }) => {
-  const [data, setData]: any[] = useState<any[]>(posts);
   const [sortedData, setSortedData] = useState([]);
 
   const handleRemovePosts = (postId: number) => {
@@ -22,10 +21,6 @@ const PostsContainer = ({ posts }: { posts: any[] }) => {
     // setData(updatedPosts);
     setSortedData(updatedPosts);
   };
-
-  useEffect(() => {
-    setData(posts);
-  }, [posts]);
 
   useEffect(() => {
     // Calculate the number of columns based on window width
@@ -37,7 +32,7 @@ const PostsContainer = ({ posts }: { posts: any[] }) => {
       else if (width >= 1024) columns = 4; // lg
       else if (width >= 768) columns = 3; // md
 
-      setSortedData(sortDataIntoColumns(data, columns));
+      setSortedData(sortDataIntoColumns(posts, columns));
     };
 
     handleResize(); // Initial calculation
@@ -46,9 +41,9 @@ const PostsContainer = ({ posts }: { posts: any[] }) => {
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, [data]);
+  }, [posts]);
 
-  if (!data) {
+  if (!posts) {
     return <h1>Loading</h1>;
   }
 
