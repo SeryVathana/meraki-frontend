@@ -36,7 +36,7 @@ const GroupMembersDialog = ({ group, type }: { group: any; type: string }) => {
           <DialogTitle className="my-3 flex items-center">Members</DialogTitle>
           <div className="flex gap-2">
             <div className="relative w-full mr-auto">
-              <Input placeholder="Search groups..." className="pr-10 " value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+              <Input placeholder="Search Members ..." className="pr-10 " value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
               <Search className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-600 w-5" />
             </div>
           </div>
